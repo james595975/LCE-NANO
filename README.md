@@ -13,6 +13,10 @@ Unity `6000.3.21f1`에서 생성·검증한, LCE(liquid crystal elastomer) 꼬�
 
 `Swim only`는 수 µm/s 자체 추진을 짧은 시간에 관찰할 수 있도록 `Motion view gain=100x`를 자동 적용합니다. 이는 위치 표시만 확대하며 UI의 RFT 속도, 추진력, Reynolds 수에는 영향을 주지 않습니다. `Flow only`와 `Combined`는 정량 비교를 위해 자동으로 `1x`를 사용합니다.
 
+### Reynolds number 설정
+
+`Direct Re`를 선택하면 로그 슬라이더로 `10^-5`부터 `1`까지 목표 Reynolds 수를 직접 설정할 수 있습니다. 시뮬레이터는 `Re=ρUL/μ`에서 필요한 점도 `μ=ρUL/Re`를 역산합니다. 혈류가 있을 때는 중심 혈류 속도, `Swim only`에서는 RFT 자체 추진 속도를 특성속도 `U`로 사용합니다. `Manual viscosity`를 선택하면 점도를 직접 조절하고 결과 Reynolds 수를 관찰할 수 있습니다.
+
 빈 Scene에서도 런타임 부트스트랩이 전체 실험 환경을 자동 생성합니다.
 
 ## 포함된 모델

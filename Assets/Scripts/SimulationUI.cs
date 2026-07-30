@@ -9,6 +9,8 @@ namespace LCENano
         public OrbitCamera orbit;
         GUIStyle title, label, box;
         bool visible = true;
+        bool reynoldsControl;
+        float targetLogRe = -2f;
 
         void InitStyles()
         {
@@ -68,13 +70,32 @@ namespace LCENano
             Slider("Deformation amplitude", ref p.amplitude, .05f, 1.15f, "");
             Slider("Traveling-wave count", ref p.waveNumber, .5f, 3.5f, "");
             Slider("Blood center speed", ref p.centerlineSpeedMmS, 0f, 8f, " mm/s");
-            Slider("Blood viscosity", ref p.bloodViscosityMPas, 1f, 8f, " mPa.s");
+            GUILayout.Space(6);
+            GUILayout.Label("REYNOLDS NUMBER CONTROL", label);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Direct Re")) reynoldsControl = true;
+            if (GUILayout.Button("Manual viscosity")) reynoldsControl = false;
+            GUILayout.EndHorizontal();
+            float characteristicSpeed = p.centerlineSpeedMmS > .0001f
+                ? p.centerlineSpeedMmS * 1e-3f : Mathf.Abs(swimmer.RFT.speedMS);
+            if (reynoldsControl)
+            {
+                float targetRe = Mathf.Pow(10f, targetLogRe);
+                GUILayout.Label("Target Re  " + targetRe.ToString("0.00000"), label);
+                targetLogRe = GUILayout.HorizontalSlider(targetLogRe, -5f, 0f);
+                p.bloodViscosityMPas = Mathf.Clamp(
+                    MicroHydrodynamics.ViscosityForReMPas(p, characteristicSpeed, targetRe), .01f, 10000f);
+                GUILayout.Label("Solved viscosity  " + p.bloodViscosityMPas.ToString("0.000") + " mPa.s", label);
+                if (characteristicSpeed < 1e-10f)
+                    GUILayout.Label("Set flow or actuation speed to define Re", label);
+            }
+            else Slider("Blood viscosity", ref p.bloodViscosityMPas, .5f, 300f, " mPa.s");
             Slider("Field direction", ref p.fieldYaw, -180f, 180f, " deg");
             Slider("Motion view gain", ref p.motionVisualizationGain, 1f, 200f, " x");
             if (p.motionVisualizationGain > 1.01f)
                 GUILayout.Label("Display magnification only; SI physics unchanged", label);
             GUILayout.Space(8);
-            float re = MicroHydrodynamics.Reynolds(p);
+            float re = MicroHydrodynamics.ReynoldsForSpeed(p, characteristicSpeed);
             GUILayout.Label("LIVE MICROHYDRODYNAMICS", label);
             GUILayout.Label("Reynolds number     " + re.ToString("0.0000"), label);
             GUILayout.Label("Flow regime          " + (re < .1f ? "Creeping / Stokes" : "Low-Re laminar"), label);

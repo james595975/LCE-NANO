@@ -34,6 +34,12 @@ namespace LCENano
         public static float SpeedSI(SimulationParameters p) => p.centerlineSpeedMmS * 1e-3f;
         public static float Reynolds(SimulationParameters p) => p.bloodDensity * SpeedSI(p) * LengthSI(p) / Mathf.Max(ViscositySI(p), 1e-9f);
 
+        public static float ReynoldsForSpeed(SimulationParameters p, float characteristicSpeedMS)
+            => p.bloodDensity * Mathf.Abs(characteristicSpeedMS) * LengthSI(p) / Mathf.Max(ViscositySI(p), 1e-9f);
+
+        public static float ViscosityForReMPas(SimulationParameters p, float characteristicSpeedMS, float targetRe)
+            => p.bloodDensity * Mathf.Abs(characteristicSpeedMS) * LengthSI(p) / Mathf.Max(targetRe, 1e-8f) * 1e3f;
+
         // Shape-aware translational resistance relative to 6*pi*mu*a.
         public static Vector3 HeadDragMultiplier(HeadGeometry shape)
         {
