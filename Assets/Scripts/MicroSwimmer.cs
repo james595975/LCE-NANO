@@ -9,6 +9,9 @@ namespace LCENano
         public Transform head;
         public LCETailVisual tail;
         Vector3 velocity;
+        MicroHydrodynamics.RFTResult rft;
+        float cycleIntegral, cycleElapsed, cycleMean;
+        int cycleIndex = -1;
         HeadGeometry builtHead = (HeadGeometry)(-1);
 
         void Update()
@@ -29,13 +32,18 @@ namespace LCENano
         {
             // At Re << 1, inertia relaxes far faster than a frame: solve F_drag + F_propulsion = 0.
             Vector3 fluid = flow.VelocityAt(transform.position);
-            float omega = 2f * Mathf.PI * parameters.frequencyHz;
-            float tailSpeed = MicroHydrodynamics.PropulsionCoefficient(parameters.tail)
-                * parameters.amplitude * parameters.amplitude * omega * .11f;
+            rft = MicroHydrodynamics.SolveAxialRFT(parameters, Time.time);
+            int nowCycle = Mathf.FloorToInt(Time.time * Mathf.Max(parameters.frequencyHz, .01f));
+            if (cycleIndex >= 0 && nowCycle != cycleIndex)
+            {
+                cycleMean = cycleIntegral / Mathf.Max(cycleElapsed, 1e-6f);
+                cycleIntegral = 0f; cycleElapsed = 0f;
+            }
+            cycleIndex = nowCycle;
+            cycleIntegral += rft.speedMS * dt; cycleElapsed += dt;
             Vector3 desiredAxis = Quaternion.Euler(0f, parameters.fieldYaw, 0f) * Vector3.right;
-            Vector3 drag = MicroHydrodynamics.HeadDragMultiplier(parameters.head);
-            float axialResistance = Vector3.Dot(drag, new Vector3(Mathf.Abs(desiredAxis.x), Mathf.Abs(desiredAxis.y), Mathf.Abs(desiredAxis.z)));
-            velocity = fluid + desiredAxis * tailSpeed / Mathf.Max(axialResistance, .2f);
+            const float physicalToWorld = 420f;
+            velocity = fluid + desiredAxis * rft.speedMS * physicalToWorld;
 
             transform.position += velocity * dt;
             Quaternion targetRotation = Quaternion.FromToRotation(Vector3.right, desiredAxis);
@@ -56,5 +64,7 @@ namespace LCENano
         }
 
         public Vector3 DisplayVelocity => velocity;
+        public MicroHydrodynamics.RFTResult RFT => rft;
+        public float CycleMeanSpeedMS => cycleMean;
     }
 }

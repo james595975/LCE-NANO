@@ -4,6 +4,7 @@ namespace LCENano
 {
     public enum TailGeometry { FishFin, Helix, Ribbon }
     public enum HeadGeometry { Sphere, Prolate, Disk }
+    public enum StrokeMode { TravelingWave, Reciprocal, Disabled }
 
     [System.Serializable]
     public class SimulationParameters
@@ -21,6 +22,7 @@ namespace LCENano
         public float fieldYaw = 0f;
         public TailGeometry tail = TailGeometry.FishFin;
         public HeadGeometry head = HeadGeometry.Sphere;
+        public StrokeMode stroke = StrokeMode.TravelingWave;
     }
 
     public static class MicroHydrodynamics
@@ -41,10 +43,75 @@ namespace LCENano
             }
         }
 
-        public static float PropulsionCoefficient(TailGeometry tail)
+        public struct RFTResult
         {
-            // Slender-body / resistive-force inspired dimensionless coefficients.
-            return tail == TailGeometry.Helix ? 0.34f : tail == TailGeometry.FishFin ? 0.22f : 0.16f;
+            public float speedMS;
+            public float thrustN;
+            public float tailResistance;
+        }
+
+        // Local resistive-force theory integrated over a discretized LCE centerline.
+        // Force-free swimming gives (zetaHead + zetaTail) U + F_shape = 0.
+        public static RFTResult SolveAxialRFT(SimulationParameters p, float time)
+        {
+            const int n = 64;
+            float mu = ViscositySI(p);
+            float totalLength = LengthSI(p);
+            float tailLength = totalLength * .72f;
+            float filamentRadius = Mathf.Max(totalLength * .018f, 0.5e-6f);
+            float logTerm = Mathf.Max(Mathf.Log(2f * tailLength / filamentRadius), 1.2f);
+            float xiParallel = 2f * Mathf.PI * mu / (logTerm - .5f);
+            float xiPerp = 4f * Mathf.PI * mu / (logTerm + .5f);
+            float dt = 1e-4f / Mathf.Max(p.frequencyHz, .1f);
+            float ds = tailLength / (n - 1f);
+            float shapeForce = 0f, tailDrag = 0f;
+
+            for (int i = 0; i < n; i++)
+            {
+                float u = i / (n - 1f);
+                Vector3 prev = CenterlineSI(p, Mathf.Max(0f, u - 1f / (n - 1f)), time);
+                Vector3 next = CenterlineSI(p, Mathf.Min(1f, u + 1f / (n - 1f)), time);
+                Vector3 tangent = (next - prev).normalized;
+                Vector3 vShape = (CenterlineSI(p, u, time + dt) - CenterlineSI(p, u, time - dt)) / (2f * dt);
+                float tx = tangent.x;
+                float dragAlongX = xiPerp + (xiParallel - xiPerp) * tx * tx;
+                float shapeFx = -(xiPerp * vShape.x + (xiParallel - xiPerp) * Vector3.Dot(vShape, tangent) * tx);
+                shapeForce += shapeFx * ds;
+                tailDrag += dragAlongX * ds;
+            }
+
+            float radius = p.headRadiusUm * 1e-6f;
+            float headMultiplier = HeadDragMultiplier(p.head).x;
+            float headDrag = 6f * Mathf.PI * mu * radius * headMultiplier;
+            float speed = -shapeForce / Mathf.Max(headDrag + tailDrag, 1e-15f);
+            return new RFTResult { speedMS = speed, thrustN = -shapeForce, tailResistance = tailDrag };
+        }
+
+        public static Vector3 CenterlineSI(SimulationParameters p, float u, float time)
+        {
+            float l = LengthSI(p) * .72f;
+            float x = -u * l;
+            if (p.stroke == StrokeMode.Disabled) return new Vector3(x, 0f, 0f);
+            float phase = 2f * Mathf.PI * p.frequencyHz * time;
+            float a = p.amplitude * l * .16f * u;
+            float traveling = phase - u * p.waveNumber * Mathf.PI * 2f;
+            if (p.stroke == StrokeMode.Reciprocal)
+            {
+                // One degree of freedom: the exact same shape sequence is retraced backwards.
+                float q = Mathf.Sin(phase);
+                if (p.tail == TailGeometry.Helix)
+                {
+                    float baseAngle = u * p.waveNumber * Mathf.PI * 2f;
+                    return new Vector3(x, a * Mathf.Sin(baseAngle + q), a * Mathf.Cos(baseAngle + q));
+                }
+                return new Vector3(x, p.tail == TailGeometry.Ribbon ? a * q * .25f : 0f,
+                    a * q * Mathf.Sin(Mathf.PI * u));
+            }
+            if (p.tail == TailGeometry.Helix)
+                return new Vector3(x, a * Mathf.Sin(traveling), a * Mathf.Cos(traveling));
+            if (p.tail == TailGeometry.Ribbon)
+                return new Vector3(x, a * .30f * Mathf.Sin(traveling * .5f), a * Mathf.Sin(traveling));
+            return new Vector3(x, 0f, a * Mathf.Sin(traveling));
         }
     }
 }

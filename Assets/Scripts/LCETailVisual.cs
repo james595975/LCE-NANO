@@ -35,29 +35,12 @@ namespace LCENano
 
         void Deform(float time)
         {
-            float phase = time * parameters.frequencyHz * Mathf.PI * 2f;
-            float amp = parameters.amplitude;
             for (int i = 0; i < nodes.Count; i++)
             {
                 float u = i / (float)(nodes.Count - 1);
-                float x = -0.35f - u * 2.8f;
-                Vector3 p;
-                if (parameters.tail == TailGeometry.Helix)
-                {
-                    float a = phase - u * parameters.waveNumber * Mathf.PI * 2f;
-                    float radius = amp * (0.10f + 0.40f * u);
-                    p = new Vector3(x, Mathf.Sin(a) * radius, Mathf.Cos(a) * radius);
-                }
-                else if (parameters.tail == TailGeometry.Ribbon)
-                {
-                    float a = phase - u * parameters.waveNumber * Mathf.PI * 2f;
-                    p = new Vector3(x, Mathf.Sin(a) * amp * u * .52f, Mathf.Sin(a * .5f) * amp * u * .12f);
-                }
-                else
-                {
-                    float a = phase - u * parameters.waveNumber * Mathf.PI * 2f;
-                    p = new Vector3(x, 0f, Mathf.Sin(a) * amp * u * .62f);
-                }
+                Vector3 si = MicroHydrodynamics.CenterlineSI(parameters, u, time);
+                float scale = 2.8f / (MicroHydrodynamics.LengthSI(parameters) * .72f);
+                Vector3 p = si * scale + new Vector3(-.35f, 0f, 0f);
                 nodes[i].localPosition = p;
                 float width = parameters.tail == TailGeometry.FishFin ? Mathf.Lerp(.12f, .38f, u) : .12f;
                 nodes[i].localScale = new Vector3(.16f, width, parameters.tail == TailGeometry.Ribbon ? .28f : width);

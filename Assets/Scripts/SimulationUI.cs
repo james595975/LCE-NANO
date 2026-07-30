@@ -33,6 +33,16 @@ namespace LCENano
             if (GUILayout.Button("Ribbon")) p.tail = TailGeometry.Ribbon;
             GUILayout.EndHorizontal();
             GUILayout.Label("Selected: " + p.tail, label);
+            GUILayout.Space(5);
+            GUILayout.Label("ACTUATION / SCALLOP TEST", label);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Traveling")) p.stroke = StrokeMode.TravelingWave;
+            if (GUILayout.Button("Reciprocal")) p.stroke = StrokeMode.Reciprocal;
+            if (GUILayout.Button("Off")) p.stroke = StrokeMode.Disabled;
+            GUILayout.EndHorizontal();
+            GUILayout.Label(p.stroke == StrokeMode.TravelingWave ? "Non-reciprocal: net propulsion possible"
+                : p.stroke == StrokeMode.Reciprocal ? "Reciprocal: cycle-average propulsion = 0"
+                : "No deformation: passive advection only", label);
             GUILayout.Space(7);
             GUILayout.Label("HEAD / DRAG", label);
             GUILayout.BeginHorizontal();
@@ -53,6 +63,9 @@ namespace LCENano
             GUILayout.Label("Reynolds number     " + re.ToString("0.0000"), label);
             GUILayout.Label("Flow regime          " + (re < .1f ? "Creeping / Stokes" : "Low-Re laminar"), label);
             GUILayout.Label("Displayed velocity   " + swimmer.DisplayVelocity.magnitude.ToString("0.00") + " world/s", label);
+            GUILayout.Label("RFT swim speed       " + (swimmer.RFT.speedMS * 1e6f).ToString("0.0") + " um/s", label);
+            GUILayout.Label("Last-cycle mean      " + (swimmer.CycleMeanSpeedMS * 1e6f).ToString("0.0") + " um/s", label);
+            GUILayout.Label("Instant tail thrust  " + (swimmer.RFT.thrustN * 1e12f).ToString("0.000") + " pN", label);
             GUILayout.Label("Physical length       " + p.swimmerLengthUm.ToString("0") + " um", label);
             GUILayout.FlexibleSpace();
             GUILayout.Label("RMB drag: orbit | Wheel: zoom | H: hide", label);

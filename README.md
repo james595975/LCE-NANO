@@ -31,5 +31,17 @@ Unity `6000.3.21f1`에서 생성·검증한, LCE(liquid crystal elastomer) 꼬�
 - 혈류 프로파일: `Assets/Scripts/BloodFlowField.cs`의 `VelocityAt`
 
 현재 구현은 형상 탐색과 교육용 실시간 비교를 위한 reduced-order model입니다. 정량적인 생체 내 예측에는 혈관 벽, 비뉴턴 혈액, 적혈구 상호작용과 유체-구조 연성(FSI)을 검증된 FEM/BEM/CFD 솔버로 보정해야 합니다.
+
+## 추진 물리와 Scallop test
+
+꼬리를 64개 선분으로 이산화하고 각 선분에 국소 저항력 이론을 적용합니다.
+
+`f = -[ξ_perp v + (ξ_parallel-ξ_perp)(v·t)t]`
+
+여기서 `t`는 선분 접선이고 `ξ_parallel`, `ξ_perp`는 가느다란 필라멘트의 접선/수직 저항계수입니다. 매 프레임 다음 무관성 힘 평형을 풀어 혈류 대비 수영 속도 `U`를 얻습니다.
+
+`(ζ_head + ζ_tail) U + F_shape = 0`
+
+`Traveling`은 물고기형 진행파, 나선 회전, 리본 진행파처럼 한 주기 동안 형상 공간에서 닫힌 면적을 만드는 비가역 구동입니다. `Reciprocal`은 한 자유도 변형을 정확히 역순으로 되짚으므로 Stokes 유동의 scallop theorem에 따라 한 주기 평균 자체 추진이 0이 됩니다. `Off`에서는 자체 추진 없이 혈류에 수동 이류됩니다. UI의 순간 속도와 완료된 주기 평균으로 이를 비교할 수 있습니다.
 # LCE-NANO
 # LCE-NANO
