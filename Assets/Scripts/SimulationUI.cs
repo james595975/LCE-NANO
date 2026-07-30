@@ -86,6 +86,8 @@ namespace LCENano
                 ? p.centerlineSpeedMmS * 1e-3f / Mathf.Abs(swimmer.CycleMeanSpeedMS) : 0f;
             GUILayout.Label("Flow / swim ratio    " + (ratio > 0f ? ratio.ToString("0.0") + " x" : "--"), label);
             GUILayout.Label("Instant tail thrust  " + (swimmer.RFT.thrustN * 1e12f).ToString("0.000") + " pN", label);
+            GUILayout.Label("Observed displacement " + swimmer.ExperimentDisplacementWorld.ToString("0.000") + " world", label);
+            GUILayout.Label("Integrated axial move " + swimmer.AccumulatedAxialWorld.ToString("0.000") + " world", label);
             GUILayout.Label("Physical length       " + p.swimmerLengthUm.ToString("0") + " um", label);
             GUILayout.FlexibleSpace();
             GUILayout.Label("RMB drag: orbit | Wheel: zoom | H: hide", label);

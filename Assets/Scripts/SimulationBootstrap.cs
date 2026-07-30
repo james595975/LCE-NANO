@@ -6,8 +6,8 @@ namespace LCENano
     {
         static Material Mat(Color color, bool transparent = false)
         {
-            Shader s = Shader.Find(transparent ? "Sprites/Default" : "Universal Render Pipeline/Lit");
-            if (!s) s = Shader.Find("Standard");
+            Shader s = Shader.Find("LCENano/Unlit");
+            if (!s) s = Shader.Find("Sprites/Default");
             var m = new Material(s); m.color = color;
             if (transparent) m.renderQueue = 3000;
             return m;
@@ -39,6 +39,9 @@ namespace LCENano
             var tailObj = new GameObject("LCE deforming tail"); tailObj.transform.SetParent(root.transform, false);
             var tail = tailObj.AddComponent<LCETailVisual>(); tail.parameters = p; tail.material = Mat(new Color(1f, .30f, .45f));
             var swimmer = root.AddComponent<MicroSwimmer>(); swimmer.parameters = p; swimmer.flow = flow; swimmer.head = head.transform; swimmer.tail = tail;
+            root.AddComponent<SwimmerTrail>().Setup(Mat(new Color(.1f, 1f, .8f, .9f), true));
+            if (System.Array.Exists(System.Environment.GetCommandLineArgs(), a => a == "-lceDiagnostic"))
+                gameObject.AddComponent<PlayerDiagnostics>().swimmer = swimmer;
 
             var orbit = cam.gameObject.AddComponent<OrbitCamera>(); orbit.target = root.transform; orbit.SetFollow(false);
             var ui = gameObject.AddComponent<SimulationUI>(); ui.p = p; ui.swimmer = swimmer; ui.orbit = orbit;

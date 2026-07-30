@@ -12,6 +12,10 @@ namespace LCENano
         MicroHydrodynamics.RFTResult rft;
         float cycleIntegral, cycleElapsed, cycleMean;
         int cycleIndex = -1;
+        Vector3 experimentStart;
+        float accumulatedPropulsionWorld;
+
+        void Start() { experimentStart = transform.position; }
         HeadGeometry builtHead = (HeadGeometry)(-1);
 
         void Update()
@@ -45,7 +49,9 @@ namespace LCENano
             const float physicalToWorld = 420f;
             velocity = fluid + desiredAxis * rft.speedMS * physicalToWorld;
 
-            transform.position += velocity * dt * parameters.motionVisualizationGain;
+            Vector3 frameDelta = velocity * dt * parameters.motionVisualizationGain;
+            transform.position += frameDelta;
+            accumulatedPropulsionWorld += Vector3.Dot(frameDelta, desiredAxis);
             Quaternion targetRotation = Quaternion.FromToRotation(Vector3.right, desiredAxis);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 6f * dt);
 
@@ -66,9 +72,13 @@ namespace LCENano
         public Vector3 DisplayVelocity => velocity;
         public MicroHydrodynamics.RFTResult RFT => rft;
         public float CycleMeanSpeedMS => cycleMean;
+        public float ExperimentDisplacementWorld => Vector3.Distance(transform.position, experimentStart);
+        public float AccumulatedAxialWorld => accumulatedPropulsionWorld;
         public void ResetPosition()
         {
             transform.position = new Vector3(-3f, .65f, 0f);
+            experimentStart = transform.position;
+            accumulatedPropulsionWorld = 0f;
             cycleIntegral = cycleElapsed = cycleMean = 0f;
             cycleIndex = -1;
         }

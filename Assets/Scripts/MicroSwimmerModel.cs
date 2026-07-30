@@ -73,7 +73,10 @@ namespace LCENano
                 float u = i / (n - 1f);
                 Vector3 prev = CenterlineSI(p, Mathf.Max(0f, u - 1f / (n - 1f)), time);
                 Vector3 next = CenterlineSI(p, Mathf.Min(1f, u + 1f / (n - 1f)), time);
-                Vector3 tangent = (next - prev).normalized;
+                Vector3 segment = next - prev;
+                // Vector3.normalized collapses vectors below Unity's world-scale epsilon.
+                // Our SI segments are ~1e-6 m, so normalize explicitly at microscale.
+                Vector3 tangent = segment / Mathf.Max(segment.magnitude, 1e-15f);
                 Vector3 vShape = (CenterlineSI(p, u, time + dt) - CenterlineSI(p, u, time - dt)) / (2f * dt);
                 float tx = tangent.x;
                 float dragAlongX = xiPerp + (xiParallel - xiPerp) * tx * tx;
@@ -85,7 +88,8 @@ namespace LCENano
             float radius = p.headRadiusUm * 1e-6f;
             float headMultiplier = HeadDragMultiplier(p.head).x;
             float headDrag = 6f * Mathf.PI * mu * radius * headMultiplier;
-            float speed = -shapeForce / Mathf.Max(headDrag + tailDrag, 1e-15f);
+            // F_total = F_shape - (zetaHead + zetaTail) U = 0.
+            float speed = shapeForce / Mathf.Max(headDrag + tailDrag, 1e-15f);
             return new RFTResult { speedMS = speed, thrustN = -shapeForce, tailResistance = tailDrag };
         }
 
