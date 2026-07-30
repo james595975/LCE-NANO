@@ -40,8 +40,8 @@ namespace LCENano
             var tail = tailObj.AddComponent<LCETailVisual>(); tail.parameters = p; tail.material = Mat(new Color(1f, .30f, .45f));
             var swimmer = root.AddComponent<MicroSwimmer>(); swimmer.parameters = p; swimmer.flow = flow; swimmer.head = head.transform; swimmer.tail = tail;
 
-            var orbit = cam.gameObject.AddComponent<OrbitCamera>(); orbit.target = root.transform;
-            var ui = gameObject.AddComponent<SimulationUI>(); ui.p = p; ui.swimmer = swimmer;
+            var orbit = cam.gameObject.AddComponent<OrbitCamera>(); orbit.target = root.transform; orbit.SetFollow(false);
+            var ui = gameObject.AddComponent<SimulationUI>(); ui.p = p; ui.swimmer = swimmer; ui.orbit = orbit;
         }
 
         void BuildVessel(BloodFlowField flow)

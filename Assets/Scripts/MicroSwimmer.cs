@@ -66,5 +66,11 @@ namespace LCENano
         public Vector3 DisplayVelocity => velocity;
         public MicroHydrodynamics.RFTResult RFT => rft;
         public float CycleMeanSpeedMS => cycleMean;
+        public void ResetPosition()
+        {
+            transform.position = new Vector3(-3f, .65f, 0f);
+            cycleIntegral = cycleElapsed = cycleMean = 0f;
+            cycleIndex = -1;
+        }
     }
 }

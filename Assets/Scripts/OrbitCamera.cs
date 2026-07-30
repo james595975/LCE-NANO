@@ -5,7 +5,14 @@ namespace LCENano
     public class OrbitCamera : MonoBehaviour
     {
         public Transform target;
+        public bool followSwimmer;
         float yaw = -25f, pitch = 20f, distance = 12f;
+        Vector3 fixedFocus;
+        public void SetFollow(bool follow)
+        {
+            followSwimmer = follow;
+            fixedFocus = Vector3.zero;
+        }
         void LateUpdate()
         {
             if (!target) return;
@@ -13,8 +20,9 @@ namespace LCENano
             distance = Mathf.Clamp(distance - Input.mouseScrollDelta.y, 5f, 24f);
             pitch = Mathf.Clamp(pitch, -10f, 75f);
             Quaternion q = Quaternion.Euler(pitch, yaw, 0);
-            transform.position = target.position + q * new Vector3(0, 0, -distance);
-            transform.LookAt(target);
+            Vector3 focus = followSwimmer ? target.position : fixedFocus;
+            transform.position = focus + q * new Vector3(0, 0, -distance);
+            transform.LookAt(focus);
         }
     }
 }

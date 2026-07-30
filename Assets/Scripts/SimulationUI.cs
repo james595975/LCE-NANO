@@ -6,6 +6,7 @@ namespace LCENano
     {
         public SimulationParameters p;
         public MicroSwimmer swimmer;
+        public OrbitCamera orbit;
         GUIStyle title, label, box;
         bool visible = true;
 
@@ -25,6 +26,18 @@ namespace LCENano
             GUILayout.BeginArea(new Rect(16, 16, 325, Screen.height - 32), box);
             GUILayout.Label("LCE MICROSWIMMER LAB", title);
             GUILayout.Label("Overdamped Stokes-flow simulation", label);
+            GUILayout.Space(8);
+            GUILayout.Label("CONTROLLED EXPERIMENT", label);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Flow only")) ApplyPreset(0);
+            if (GUILayout.Button("Swim only")) ApplyPreset(1);
+            if (GUILayout.Button("Combined")) ApplyPreset(2);
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Vessel camera")) orbit.SetFollow(false);
+            if (GUILayout.Button("Follow swimmer")) orbit.SetFollow(true);
+            GUILayout.EndHorizontal();
+            GUILayout.Label("Camera: " + (orbit.followSwimmer ? "swimmer-relative" : "fixed laboratory frame"), label);
             GUILayout.Space(8);
             GUILayout.Label("TAIL GEOMETRY", label);
             GUILayout.BeginHorizontal();
@@ -54,7 +67,7 @@ namespace LCENano
             Slider("LCE frequency", ref p.frequencyHz, .2f, 12f, " Hz");
             Slider("Deformation amplitude", ref p.amplitude, .05f, 1.15f, "");
             Slider("Traveling-wave count", ref p.waveNumber, .5f, 3.5f, "");
-            Slider("Blood center speed", ref p.centerlineSpeedMmS, .1f, 8f, " mm/s");
+            Slider("Blood center speed", ref p.centerlineSpeedMmS, 0f, 8f, " mm/s");
             Slider("Blood viscosity", ref p.bloodViscosityMPas, 1f, 8f, " mPa.s");
             Slider("Field direction", ref p.fieldYaw, -180f, 180f, " deg");
             GUILayout.Space(8);
@@ -65,6 +78,10 @@ namespace LCENano
             GUILayout.Label("Displayed velocity   " + swimmer.DisplayVelocity.magnitude.ToString("0.00") + " world/s", label);
             GUILayout.Label("RFT swim speed       " + (swimmer.RFT.speedMS * 1e6f).ToString("0.0") + " um/s", label);
             GUILayout.Label("Last-cycle mean      " + (swimmer.CycleMeanSpeedMS * 1e6f).ToString("0.0") + " um/s", label);
+            GUILayout.Label("Centerline blood     " + (p.centerlineSpeedMmS * 1000f).ToString("0") + " um/s", label);
+            float ratio = Mathf.Abs(swimmer.CycleMeanSpeedMS) > 1e-9f
+                ? p.centerlineSpeedMmS * 1e-3f / Mathf.Abs(swimmer.CycleMeanSpeedMS) : 0f;
+            GUILayout.Label("Flow / swim ratio    " + (ratio > 0f ? ratio.ToString("0.0") + " x" : "--"), label);
             GUILayout.Label("Instant tail thrust  " + (swimmer.RFT.thrustN * 1e12f).ToString("0.000") + " pN", label);
             GUILayout.Label("Physical length       " + p.swimmerLengthUm.ToString("0") + " um", label);
             GUILayout.FlexibleSpace();
@@ -76,6 +93,15 @@ namespace LCENano
         {
             GUILayout.Space(5); GUILayout.Label(name + "  " + value.ToString("0.00") + unit, label);
             value = GUILayout.HorizontalSlider(value, min, max);
+        }
+
+        void ApplyPreset(int preset)
+        {
+            if (preset == 0) { p.centerlineSpeedMmS = 2f; p.stroke = StrokeMode.Disabled; }
+            else if (preset == 1) { p.centerlineSpeedMmS = 0f; p.stroke = StrokeMode.TravelingWave; }
+            else { p.centerlineSpeedMmS = 2f; p.stroke = StrokeMode.TravelingWave; }
+            swimmer.ResetPosition();
+            orbit.SetFollow(false);
         }
     }
 }
