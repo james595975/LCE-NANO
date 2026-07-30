@@ -45,7 +45,7 @@ namespace LCENano
             const float physicalToWorld = 420f;
             velocity = fluid + desiredAxis * rft.speedMS * physicalToWorld;
 
-            transform.position += velocity * dt;
+            transform.position += velocity * dt * parameters.motionVisualizationGain;
             Quaternion targetRotation = Quaternion.FromToRotation(Vector3.right, desiredAxis);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 6f * dt);
 

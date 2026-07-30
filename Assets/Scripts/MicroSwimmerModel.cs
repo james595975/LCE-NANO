@@ -20,6 +20,8 @@ namespace LCENano
         public float amplitude = 0.65f;
         public float waveNumber = 1.5f;
         public float fieldYaw = 0f;
+        [Tooltip("Display-only position magnification; does not change reported SI speed or force.")]
+        public float motionVisualizationGain = 1f;
         public TailGeometry tail = TailGeometry.FishFin;
         public HeadGeometry head = HeadGeometry.Sphere;
         public StrokeMode stroke = StrokeMode.TravelingWave;
@@ -94,7 +96,9 @@ namespace LCENano
             if (p.stroke == StrokeMode.Disabled) return new Vector3(x, 0f, 0f);
             float phase = 2f * Mathf.PI * p.frequencyHz * time;
             float a = p.amplitude * l * .16f * u;
-            float traveling = phase - u * p.waveNumber * Mathf.PI * 2f;
+            // With x=-uL, this phase convention sends the wave toward the tail and
+            // produces force-free swimming in the swimmer's local +X direction.
+            float traveling = -phase + u * p.waveNumber * Mathf.PI * 2f;
             if (p.stroke == StrokeMode.Reciprocal)
             {
                 // One degree of freedom: the exact same shape sequence is retraced backwards.

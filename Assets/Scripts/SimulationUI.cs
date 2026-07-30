@@ -70,6 +70,9 @@ namespace LCENano
             Slider("Blood center speed", ref p.centerlineSpeedMmS, 0f, 8f, " mm/s");
             Slider("Blood viscosity", ref p.bloodViscosityMPas, 1f, 8f, " mPa.s");
             Slider("Field direction", ref p.fieldYaw, -180f, 180f, " deg");
+            Slider("Motion view gain", ref p.motionVisualizationGain, 1f, 200f, " x");
+            if (p.motionVisualizationGain > 1.01f)
+                GUILayout.Label("Display magnification only; SI physics unchanged", label);
             GUILayout.Space(8);
             float re = MicroHydrodynamics.Reynolds(p);
             GUILayout.Label("LIVE MICROHYDRODYNAMICS", label);
@@ -97,9 +100,9 @@ namespace LCENano
 
         void ApplyPreset(int preset)
         {
-            if (preset == 0) { p.centerlineSpeedMmS = 2f; p.stroke = StrokeMode.Disabled; }
-            else if (preset == 1) { p.centerlineSpeedMmS = 0f; p.stroke = StrokeMode.TravelingWave; }
-            else { p.centerlineSpeedMmS = 2f; p.stroke = StrokeMode.TravelingWave; }
+            if (preset == 0) { p.centerlineSpeedMmS = 2f; p.stroke = StrokeMode.Disabled; p.motionVisualizationGain = 1f; }
+            else if (preset == 1) { p.centerlineSpeedMmS = 0f; p.stroke = StrokeMode.TravelingWave; p.motionVisualizationGain = 100f; }
+            else { p.centerlineSpeedMmS = 2f; p.stroke = StrokeMode.TravelingWave; p.motionVisualizationGain = 1f; }
             swimmer.ResetPosition();
             orbit.SetFollow(false);
         }

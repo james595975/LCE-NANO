@@ -11,6 +11,8 @@ Unity `6000.3.21f1`에서 생성·검증한, LCE(liquid crystal elastomer) 꼬�
 
 `Flow only`, `Swim only`, `Combined` 버튼은 동일한 시작 위치에서 통제 실험을 시작합니다. 기본 카메라는 혈관에 고정된 laboratory frame이므로 절대 이동량을 비교할 수 있습니다. `Follow swimmer`는 꼬리 변형 관찰용이며 이동량 비교에는 적합하지 않습니다.
 
+`Swim only`는 수 µm/s 자체 추진을 짧은 시간에 관찰할 수 있도록 `Motion view gain=100x`를 자동 적용합니다. 이는 위치 표시만 확대하며 UI의 RFT 속도, 추진력, Reynolds 수에는 영향을 주지 않습니다. `Flow only`와 `Combined`는 정량 비교를 위해 자동으로 `1x`를 사용합니다.
+
 빈 Scene에서도 런타임 부트스트랩이 전체 실험 환경을 자동 생성합니다.
 
 ## 포함된 모델
