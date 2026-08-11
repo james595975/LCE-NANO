@@ -3,47 +3,48 @@ using UnityEngine;
 
 namespace LCENano
 {
+    // Visual model of an LCE dome carrying passive silicone-like flexible fringes.
+    // Adjacent fringe rings use a phase lag so the shape cycle is non-reciprocal.
     public class LCETailVisual : MonoBehaviour
     {
         public SimulationParameters parameters;
         public Material material;
-        public int segments = 30;
-        readonly List<Transform> nodes = new List<Transform>();
-        TailGeometry builtType = (TailGeometry)(-1);
+        readonly List<Transform> fringes = new List<Transform>();
+        Transform dome;
 
-        void Update()
-        {
-            if (builtType != parameters.tail) Rebuild();
-            Deform(Time.time);
-        }
+        void Start() { Build(); }
 
-        void Rebuild()
+        void Build()
         {
-            foreach (Transform n in nodes) if (n) Destroy(n.gameObject);
-            nodes.Clear();
-            builtType = parameters.tail;
-            for (int i = 0; i < segments; i++)
+            dome = GameObject.CreatePrimitive(PrimitiveType.Sphere).transform;
+            dome.name = "Reciprocating LCE dome"; dome.SetParent(transform, false);
+            dome.localPosition = new Vector3(-3.05f, 0f, 0f); dome.localScale = new Vector3(1.05f, 1.28f, 1.28f);
+            dome.GetComponent<Renderer>().sharedMaterial = material; Destroy(dome.GetComponent<Collider>());
+            for (int i = 0; i < 18; i++)
             {
-                var g = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                Destroy(g.GetComponent<Collider>());
-                g.name = "LCE segment " + i;
-                g.transform.SetParent(transform, false);
-                g.GetComponent<Renderer>().sharedMaterial = material;
-                nodes.Add(g.transform);
+                float angle = i * Mathf.PI * 2f / 18f;
+                var f = GameObject.CreatePrimitive(PrimitiveType.Capsule).transform;
+                f.name = "Passive silicone fringe " + i; f.SetParent(transform, false);
+                f.localPosition = new Vector3(-3.48f, Mathf.Sin(angle) * .61f, Mathf.Cos(angle) * .61f);
+                f.localScale = new Vector3(.055f, .30f, .055f);
+                f.GetComponent<Renderer>().sharedMaterial = material; Destroy(f.GetComponent<Collider>());
+                fringes.Add(f);
             }
         }
 
-        void Deform(float time)
+        void Update()
         {
-            for (int i = 0; i < nodes.Count; i++)
+            if (!dome) return;
+            float phase = Time.time * parameters.frequencyHz * Mathf.PI * 2f;
+            float stroke = parameters.stroke == StrokeMode.Disabled ? 0f : Mathf.Sin(phase);
+            dome.localScale = new Vector3(1.05f + .16f * stroke * parameters.amplitude, 1.28f, 1.28f);
+            for (int i = 0; i < fringes.Count; i++)
             {
-                float u = i / (float)(nodes.Count - 1);
-                Vector3 si = MicroHydrodynamics.CenterlineSI(parameters, u, time);
-                float scale = 2.8f / (MicroHydrodynamics.LengthSI(parameters) * .72f);
-                Vector3 p = si * scale + new Vector3(-.35f, 0f, 0f);
-                nodes[i].localPosition = p;
-                float width = parameters.tail == TailGeometry.FishFin ? Mathf.Lerp(.12f, .38f, u) : .12f;
-                nodes[i].localScale = new Vector3(.16f, width, parameters.tail == TailGeometry.Ribbon ? .28f : width);
+                float a = i * 360f / fringes.Count;
+                // Elastic lag (0.65 rad) makes extension and recovery follow different configurations.
+                float bend = parameters.stroke == StrokeMode.Disabled ? 0f
+                    : 24f * parameters.amplitude * Mathf.Sin(phase - .65f);
+                fringes[i].localRotation = Quaternion.Euler(0f, a, 90f + bend);
             }
         }
     }

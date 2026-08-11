@@ -14,22 +14,47 @@ namespace LCENano
         int cycleIndex = -1;
         Vector3 experimentStart;
         float accumulatedPropulsionWorld;
+        DDSDeliveryVisual delivery;
+        float phaseClock;
+        public DeliveryPhase Phase { get; private set; }
+        public float DeliveredFraction { get; private set; }
+        public bool CanStationKeep => Mathf.Abs(rft.speedMS) >= MicroHydrodynamics.RequiredWallHoldSpeedMS(parameters);
 
-        void Start() { experimentStart = transform.position; }
+        void Start() { experimentStart = transform.position; delivery = GetComponentInChildren<DDSDeliveryVisual>(); }
         HeadGeometry builtHead = (HeadGeometry)(-1);
 
         void Update()
         {
             if (builtHead != parameters.head) ApplyHeadShape();
             StepStokes(Time.deltaTime);
+            UpdateDelivery(Time.deltaTime);
+        }
+
+        void UpdateDelivery(float dt)
+        {
+            if (!parameters.autonomousDelivery) return;
+            phaseClock += dt;
+            // The timed sequence is deliberately deterministic: it exposes each physical requirement
+            // without claiming a clinically validated sensing/control implementation.
+            float boundary = Phase == DeliveryPhase.Navigate ? 5f : Phase == DeliveryPhase.TurnUpstream ? 2f
+                : Phase == DeliveryPhase.StationKeep ? 2f : parameters.injectionSeconds;
+            if ((int)Phase < (int)DeliveryPhase.StationKeep && phaseClock >= boundary) { Phase++; phaseClock = 0f; }
+            else if (Phase == DeliveryPhase.StationKeep && phaseClock >= boundary && CanStationKeep)
+            { Phase = DeliveryPhase.Inject; phaseClock = 0f; }
+            else if (Phase == DeliveryPhase.Inject)
+            {
+                DeliveredFraction = Mathf.Clamp01(phaseClock / Mathf.Max(parameters.injectionSeconds, .1f));
+                if (DeliveredFraction >= 1f) Phase = DeliveryPhase.Complete;
+            }
+            if (delivery) delivery.deliveredFraction = DeliveredFraction;
         }
 
         void ApplyHeadShape()
         {
             builtHead = parameters.head;
-            head.localScale = builtHead == HeadGeometry.Sphere ? new Vector3(.72f, .72f, .72f)
-                : builtHead == HeadGeometry.Prolate ? new Vector3(1.08f, .56f, .56f)
-                : new Vector3(.38f, 1.08f, 1.08f);
+            head.localScale = builtHead == HeadGeometry.Sphere ? new Vector3(1.28f, 1.28f, 1.28f)
+                : builtHead == HeadGeometry.Prolate ? new Vector3(1.55f, 1.12f, 1.12f)
+                : new Vector3(.72f, 1.42f, 1.42f);
         }
 
         void StepStokes(float dt)
@@ -45,7 +70,9 @@ namespace LCENano
             }
             cycleIndex = nowCycle;
             cycleIntegral += rft.speedMS * dt; cycleElapsed += dt;
-            Vector3 desiredAxis = Quaternion.Euler(0f, parameters.fieldYaw, 0f) * Vector3.right;
+            float yaw = parameters.fieldYaw;
+            if (parameters.autonomousDelivery && (int)Phase >= (int)DeliveryPhase.TurnUpstream) yaw = 180f;
+            Vector3 desiredAxis = Quaternion.Euler(0f, yaw, 0f) * Vector3.right;
             const float physicalToWorld = 420f;
             velocity = fluid + desiredAxis * rft.speedMS * physicalToWorld;
 
@@ -81,6 +108,7 @@ namespace LCENano
             accumulatedPropulsionWorld = 0f;
             cycleIntegral = cycleElapsed = cycleMean = 0f;
             cycleIndex = -1;
+            Phase = DeliveryPhase.Navigate; phaseClock = 0f; DeliveredFraction = 0f;
         }
     }
 }
