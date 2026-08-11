@@ -1,5 +1,6 @@
 # Literature-constrained LCE DDS Microswimmer Simulator
 
+codex/find-speed-calculation-from-unity-analysis-6tmwsc
 ## 3D model preview
 
 ![Three-streamer LCE DDS microswimmer](Documentation/streamer-model-preview.svg)
@@ -8,6 +9,8 @@ The preview file is committed at
 `Documentation/streamer-model-preview.svg`. It is a concept render of the modeled
 components, not a microscopy image or an in-vivo result.
 
+
+ main
 ## Proposed geometry and its limits
 
 The maximum-thrust preset is a **40 x 12 um** axially aligned swimmer in a **60 um**
