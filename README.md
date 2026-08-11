@@ -1,15 +1,25 @@
 # Literature-constrained LCE DDS Microswimmer Simulator
 
+ codex/find-speed-calculation-from-unity-analysis-s9koui
+
 codex/find-speed-calculation-from-unity-analysis-6tmwsc
+ main
 ## 3D model preview
 
 ![Three-streamer LCE DDS microswimmer](Documentation/streamer-model-preview.svg)
 
 The preview file is committed at
 `Documentation/streamer-model-preview.svg`. It is a concept render of the modeled
+ codex/find-speed-calculation-from-unity-analysis-s9koui
+components, not a microscopy image or an in-vivo result. Open the SVG directly to
+see the passive streamers sway, the dome reciprocate, blood-flow tracers move, and
+the side needle deploy and retract.
+
+
 components, not a microscopy image or an in-vivo result.
 
 
+ main
  main
 ## Proposed geometry and its limits
 
