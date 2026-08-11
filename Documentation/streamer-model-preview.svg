@@ -1,6 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
   <title id="title">Three-streamer LCE DDS microswimmer model</title>
+ codex/find-speed-calculation-from-unity-analysis-s9koui
   <desc id="desc">An animated three-dimensional concept render showing three swaying passive streamers, a reciprocating LCE dome, a drug reservoir, and a side-deploying needle inside a vessel.</desc>
+
+  <desc id="desc">A three-dimensional concept render showing three passive streamers, an LCE dome, a drug reservoir, and a side-deploying needle inside a vessel.</desc>
+ main
   <defs>
     <radialGradient id="body" cx="35%" cy="30%"><stop stop-color="#fa718a"/><stop offset="1" stop-color="#681d35"/></radialGradient>
     <radialGradient id="dome" cx="30%" cy="25%"><stop stop-color="#76e0ed"/><stop offset="1" stop-color="#146275"/></radialGradient>
@@ -13,6 +17,7 @@
   <ellipse cx="640" cy="510" rx="330" ry="45" fill="#000" opacity=".42" filter="url(#shadow)"/>
   <rect x="75" y="72" width="1050" height="9" rx="5" fill="url(#wall)"/>
   <rect x="75" y="594" width="1050" height="9" rx="5" fill="url(#wall)"/>
+ codex/find-speed-calculation-from-unity-analysis-s9koui
   <g fill="#76d9ea" opacity=".45">
     <circle cx="1020" cy="145" r="5"><animate attributeName="cx" values="1100;100;1100" dur="4s" repeatCount="indefinite"/></circle>
     <circle cx="850" cy="540" r="4"><animate attributeName="cx" values="1080;120;1080" dur="5.5s" repeatCount="indefinite"/></circle>
@@ -43,6 +48,22 @@
   </circle>
   <g fill="#d9f7ff" font-family="sans-serif" font-size="19">
     <text x="155" y="500">3 passive long streamers (animated)</text>
+
+  <g fill="none" stroke="url(#stream)" stroke-width="14" stroke-linecap="round">
+    <path d="M570 300 C470 205 390 405 285 280 C245 235 210 245 175 285"/>
+    <path d="M570 338 C465 250 390 470 280 350 C235 300 205 305 170 342"/>
+    <path d="M570 380 C470 300 395 535 285 425 C245 385 210 400 175 437"/>
+  </g>
+  <ellipse cx="570" cy="340" rx="92" ry="128" fill="url(#dome)"/>
+  <ellipse cx="710" cy="340" rx="175" ry="105" fill="url(#body)"/>
+  <ellipse cx="715" cy="340" rx="72" ry="45" fill="url(#drug)"/>
+  <g stroke="#dcecf3" stroke-width="8" stroke-linecap="round">
+    <path d="M765 292 L765 185"/>
+  </g>
+  <circle cx="765" cy="177" r="11" fill="#75d9e8"/>
+  <g fill="#d9f7ff" font-family="sans-serif" font-size="19">
+    <text x="155" y="500">3 passive long streamers</text>
+ main
     <text x="492" y="190">LCE dome</text>
     <text x="680" y="410">drug reservoir</text>
     <text x="790" y="180">side needle</text>
