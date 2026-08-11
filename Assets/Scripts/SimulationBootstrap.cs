@@ -32,10 +32,12 @@ namespace LCENano
             var vessel = new GameObject("Blood vessel + Poiseuille field");
             var flow = vessel.AddComponent<BloodFlowField>(); flow.parameters = p;
             BuildVessel(flow);
+            BuildTumorOpening(flow);
             BuildTracers(flow);
 
             var root = new GameObject("LCE Microswimmer"); root.transform.position = new Vector3(-3f, .65f, 0);
             var head = GameObject.CreatePrimitive(PrimitiveType.Sphere); head.name = "Shape-dependent head"; head.transform.SetParent(root.transform, false); head.GetComponent<Renderer>().material = Mat(new Color(.16f, .70f, .94f)); Destroy(head.GetComponent<Collider>());
+            BuildDeliveryHead(root.transform, p, head.transform);
             var tailObj = new GameObject("LCE deforming tail"); tailObj.transform.SetParent(root.transform, false);
             var tail = tailObj.AddComponent<LCETailVisual>(); tail.parameters = p; tail.material = Mat(new Color(1f, .30f, .45f));
             var swimmer = root.AddComponent<MicroSwimmer>(); swimmer.parameters = p; swimmer.flow = flow; swimmer.head = head.transform; swimmer.tail = tail;
@@ -45,6 +47,28 @@ namespace LCENano
 
             var orbit = cam.gameObject.AddComponent<OrbitCamera>(); orbit.target = root.transform; orbit.SetFollow(false);
             var ui = gameObject.AddComponent<SimulationUI>(); ui.p = p; ui.swimmer = swimmer; ui.orbit = orbit;
+        }
+
+        void BuildTumorOpening(BloodFlowField flow)
+        {
+            var opening = GameObject.CreatePrimitive(PrimitiveType.Cylinder); opening.name = "Tumor endothelial opening (1 um)";
+            opening.transform.SetParent(flow.transform, false);
+            opening.transform.localPosition = new Vector3(1.5f, flow.vesselRadiusWorld - .015f, 0f);
+            opening.transform.localScale = new Vector3(.12f, .015f, .12f);
+            opening.GetComponent<Renderer>().material = Mat(new Color(.02f, .01f, .04f)); Destroy(opening.GetComponent<Collider>());
+        }
+
+        void BuildDeliveryHead(Transform root, SimulationParameters p, Transform head)
+        {
+            head.localScale = new Vector3(.85f, .55f, .55f);
+            var d = head.gameObject.AddComponent<DDSDeliveryVisual>(); d.parameters = p;
+            var needle = GameObject.CreatePrimitive(PrimitiveType.Cylinder); needle.name = "Side-deploying needle";
+            needle.transform.SetParent(head, false); needle.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            needle.GetComponent<Renderer>().material = Mat(new Color(.85f, .92f, 1f)); Destroy(needle.GetComponent<Collider>()); d.needle = needle.transform;
+            var payload = GameObject.CreatePrimitive(PrimitiveType.Cube); payload.name = "DDS payload reservoir";
+            payload.transform.SetParent(head, false); payload.transform.localPosition = new Vector3(.05f, 0f, 0f);
+            payload.transform.localScale = new Vector3(.55f, .42f, .42f); payload.GetComponent<Renderer>().material = Mat(new Color(.2f, 1f, .45f, .8f), true);
+            Destroy(payload.GetComponent<Collider>()); d.plunger = payload.transform;
         }
 
         void BuildVessel(BloodFlowField flow)

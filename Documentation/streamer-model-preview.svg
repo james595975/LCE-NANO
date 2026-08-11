@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Three-streamer LCE DDS microswimmer model</title>
+  <desc id="desc">An animated three-dimensional concept render showing three swaying passive streamers, a reciprocating LCE dome, a drug reservoir, and a side-deploying needle inside a vessel.</desc>
+  <defs>
+    <radialGradient id="body" cx="35%" cy="30%"><stop stop-color="#fa718a"/><stop offset="1" stop-color="#681d35"/></radialGradient>
+    <radialGradient id="dome" cx="30%" cy="25%"><stop stop-color="#76e0ed"/><stop offset="1" stop-color="#146275"/></radialGradient>
+    <radialGradient id="drug" cx="30%" cy="25%"><stop stop-color="#ffd85a"/><stop offset="1" stop-color="#a86100"/></radialGradient>
+    <linearGradient id="stream" x1="0" x2="1"><stop stop-color="#32a9be"/><stop offset=".65" stop-color="#8cecf2"/><stop offset="1" stop-color="#258598"/></linearGradient>
+    <linearGradient id="wall"><stop stop-color="#246b91"/><stop offset=".5" stop-color="#70d6e6"/><stop offset="1" stop-color="#123957"/></linearGradient>
+    <filter id="shadow"><feGaussianBlur stdDeviation="12"/></filter>
+  </defs>
+  <rect width="1200" height="675" fill="#061525"/>
+  <ellipse cx="640" cy="510" rx="330" ry="45" fill="#000" opacity=".42" filter="url(#shadow)"/>
+  <rect x="75" y="72" width="1050" height="9" rx="5" fill="url(#wall)"/>
+  <rect x="75" y="594" width="1050" height="9" rx="5" fill="url(#wall)"/>
+  <g fill="#76d9ea" opacity=".45">
+    <circle cx="1020" cy="145" r="5"><animate attributeName="cx" values="1100;100;1100" dur="4s" repeatCount="indefinite"/></circle>
+    <circle cx="850" cy="540" r="4"><animate attributeName="cx" values="1080;120;1080" dur="5.5s" repeatCount="indefinite"/></circle>
+  </g>
+  <g fill="none" stroke="url(#stream)" stroke-width="14" stroke-linecap="round">
+    <path d="M570 300 C470 205 390 405 285 280 C245 235 210 245 175 285">
+      <animate attributeName="d" values="M570 300 C470 205 390 405 285 280 C245 235 210 245 175 285;M570 300 C465 390 385 190 280 315 C240 360 205 350 175 315;M570 300 C470 205 390 405 285 280 C245 235 210 245 175 285" dur="1.8s" repeatCount="indefinite"/>
+    </path>
+    <path d="M570 338 C465 250 390 470 280 350 C235 300 205 305 170 342">
+      <animate attributeName="d" values="M570 338 C465 250 390 470 280 350 C235 300 205 305 170 342;M570 338 C470 430 390 220 285 345 C240 390 205 380 170 342;M570 338 C465 250 390 470 280 350 C235 300 205 305 170 342" dur="1.8s" begin="-.3s" repeatCount="indefinite"/>
+    </path>
+    <path d="M570 380 C470 300 395 535 285 425 C245 385 210 400 175 437">
+      <animate attributeName="d" values="M570 380 C470 300 395 535 285 425 C245 385 210 400 175 437;M570 380 C465 470 390 275 280 395 C240 440 205 425 175 390;M570 380 C470 300 395 535 285 425 C245 385 210 400 175 437" dur="1.8s" begin="-.6s" repeatCount="indefinite"/>
+    </path>
+  </g>
+  <ellipse cx="570" cy="340" rx="92" ry="128" fill="url(#dome)">
+    <animate attributeName="rx" values="84;102;84" dur="1.8s" repeatCount="indefinite"/>
+  </ellipse>
+  <ellipse cx="710" cy="340" rx="175" ry="105" fill="url(#body)"/>
+  <ellipse cx="715" cy="340" rx="72" ry="45" fill="url(#drug)"/>
+  <g stroke="#dcecf3" stroke-width="8" stroke-linecap="round">
+    <path d="M765 292 L765 250">
+      <animate attributeName="d" values="M765 292 L765 250;M765 292 L765 250;M765 292 L765 185;M765 292 L765 185;M765 292 L765 250" keyTimes="0;.3;.45;.8;1" dur="6s" repeatCount="indefinite"/>
+    </path>
+  </g>
+  <circle cx="765" cy="242" r="11" fill="#75d9e8">
+    <animate attributeName="cy" values="242;242;177;177;242" keyTimes="0;.3;.45;.8;1" dur="6s" repeatCount="indefinite"/>
+  </circle>
+  <g fill="#d9f7ff" font-family="sans-serif" font-size="19">
+    <text x="155" y="500">3 passive long streamers (animated)</text>
+    <text x="492" y="190">LCE dome</text>
+    <text x="680" y="410">drug reservoir</text>
+    <text x="790" y="180">side needle</text>
+  </g>
+</svg>

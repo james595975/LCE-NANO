@@ -5,26 +5,37 @@ namespace LCENano
     public enum TailGeometry { FishFin, Helix, Ribbon }
     public enum HeadGeometry { Sphere, Prolate, Disk }
     public enum StrokeMode { TravelingWave, Reciprocal, Disabled }
+    public enum DeliveryPhase { Navigate, TurnUpstream, StationKeep, Inject, Complete }
 
     [System.Serializable]
     public class SimulationParameters
     {
         [Header("Microscale SI values")]
-        public float swimmerLengthUm = 120f;
-        public float headRadiusUm = 18f;
+        [Tooltip("Maximum-thrust preset. Axial body length is intentionally not constrained by turning clearance.")]
+        public float swimmerLengthUm = 40f;
+        public float swimmerDiameterUm = 12f;
+        public float vesselDiameterUm = 60f;
+        [Tooltip("Hashizume et al. observed 0.3-4.7 um inter-endothelial openings; 1 um is a conservative target.")]
+        public float openingDiameterUm = 1f;
+        public float needleDiameterUm = .5f;
+        public float needleExtensionUm = 6f;
+        public float headRadiusUm = 6f;
         public float bloodViscosityMPas = 3.5f;
         public float bloodDensity = 1060f;
-        public float centerlineSpeedMmS = 2.0f;
+        public float centerlineSpeedMmS = 1.0f;
         [Header("LCE actuation")]
-        public float frequencyHz = 3f;
-        public float amplitude = 0.65f;
-        public float waveNumber = 1.5f;
+        public float frequencyHz = 12f;
+        public float amplitude = 1.15f;
+        public float waveNumber = 1.6f;
         public float fieldYaw = 0f;
         [Tooltip("Display-only position magnification; does not change reported SI speed or force.")]
         public float motionVisualizationGain = 1f;
         public TailGeometry tail = TailGeometry.FishFin;
         public HeadGeometry head = HeadGeometry.Sphere;
         public StrokeMode stroke = StrokeMode.TravelingWave;
+        [Header("Delivery sequence")]
+        public bool autonomousDelivery = true;
+        public float injectionSeconds = 4f;
     }
 
     public static class MicroHydrodynamics
@@ -33,6 +44,22 @@ namespace LCENano
         public static float LengthSI(SimulationParameters p) => p.swimmerLengthUm * 1e-6f;
         public static float SpeedSI(SimulationParameters p) => p.centerlineSpeedMmS * 1e-3f;
         public static float Reynolds(SimulationParameters p) => p.bloodDensity * SpeedSI(p) * LengthSI(p) / Mathf.Max(ViscositySI(p), 1e-9f);
+
+        // Distance from a no-slip wall at which Poiseuille flow equals swimming speed.
+        // u(y)=umax[1-(1-y/R)^2], solved exactly for y.
+        public static float HoldLayerUm(SimulationParameters p, float swimSpeedMS)
+        {
+            float ratio = Mathf.Clamp01(Mathf.Abs(swimSpeedMS) / Mathf.Max(SpeedSI(p), 1e-12f));
+            float radius = p.vesselDiameterUm * .5f;
+            return radius * (1f - Mathf.Sqrt(1f - ratio));
+        }
+
+        // Minimum local flow seen by a circular body touching a no-slip wall.
+        public static float RequiredWallHoldSpeedMS(SimulationParameters p)
+        {
+            float yOverR = Mathf.Clamp01(p.swimmerDiameterUm / p.vesselDiameterUm);
+            return SpeedSI(p) * (1f - (1f - yOverR) * (1f - yOverR));
+        }
 
         public static float ReynoldsForSpeed(SimulationParameters p, float characteristicSpeedMS)
             => p.bloodDensity * Mathf.Abs(characteristicSpeedMS) * LengthSI(p) / Mathf.Max(ViscositySI(p), 1e-9f);
@@ -96,7 +123,7 @@ namespace LCENano
             float headDrag = 6f * Mathf.PI * mu * radius * headMultiplier;
             // F_total = F_shape - (zetaHead + zetaTail) U = 0.
             float speed = shapeForce / Mathf.Max(headDrag + tailDrag, 1e-15f);
-            return new RFTResult { speedMS = speed, thrustN = -shapeForce, tailResistance = tailDrag };
+            return new RFTResult { speedMS = speed, thrustN = Mathf.Abs(shapeForce), tailResistance = tailDrag };
         }
 
         public static Vector3 CenterlineSI(SimulationParameters p, float u, float time)
