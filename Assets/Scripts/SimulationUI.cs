@@ -11,6 +11,7 @@ namespace LCENano
         bool visible = true;
         bool reynoldsControl;
         float targetLogRe = -2f;
+        Vector2 scroll;
 
         void InitStyles()
         {
@@ -25,7 +26,8 @@ namespace LCENano
         {
             if (!visible) { GUI.Label(new Rect(15, 15, 220, 30), "H: show controls"); return; }
             if (title == null) InitStyles();
-            GUILayout.BeginArea(new Rect(16, 16, 325, Screen.height - 32), box);
+            GUILayout.BeginArea(new Rect(16, 16, 385, Screen.height - 32), box);
+            scroll = GUILayout.BeginScrollView(scroll, false, true);
             GUILayout.Label("LCE MICROSWIMMER LAB", title);
             GUILayout.Label("Overdamped Stokes-flow simulation", label);
             GUILayout.Space(8);
@@ -35,19 +37,14 @@ namespace LCENano
             if (GUILayout.Button("Swim only")) ApplyPreset(1);
             if (GUILayout.Button("Combined")) ApplyPreset(2);
             GUILayout.EndHorizontal();
+            if (GUILayout.Button("MAX THRUST (ignore turning)")) ApplyMaximumThrustPreset();
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Vessel camera")) orbit.SetFollow(false);
             if (GUILayout.Button("Follow swimmer")) orbit.SetFollow(true);
             GUILayout.EndHorizontal();
             GUILayout.Label("Camera: " + (orbit.followSwimmer ? "swimmer-relative" : "fixed laboratory frame"), label);
             GUILayout.Space(8);
-            GUILayout.Label("TAIL GEOMETRY", label);
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Fish fin")) p.tail = TailGeometry.FishFin;
-            if (GUILayout.Button("Helix")) p.tail = TailGeometry.Helix;
-            if (GUILayout.Button("Ribbon")) p.tail = TailGeometry.Ribbon;
-            GUILayout.EndHorizontal();
-            GUILayout.Label("Selected: " + p.tail, label);
+            GUILayout.Label("TAIL: LCE DOME + 18 PASSIVE FRINGES", label);
             GUILayout.Space(5);
             GUILayout.Label("ACTUATION / SCALLOP TEST", label);
             GUILayout.BeginHorizontal();
@@ -110,8 +107,21 @@ namespace LCENano
             GUILayout.Label("Observed displacement " + swimmer.ExperimentDisplacementWorld.ToString("0.000") + " world", label);
             GUILayout.Label("Integrated axial move " + swimmer.AccumulatedAxialWorld.ToString("0.000") + " world", label);
             GUILayout.Label("Physical length       " + p.swimmerLengthUm.ToString("0") + " um", label);
+            GUILayout.Space(7);
+            GUILayout.Label("DDS DELIVERY / LITERATURE DESIGN", label);
+            GUILayout.Label("Phase                 " + swimmer.Phase, label);
+            GUILayout.Label("Dose delivered        " + (swimmer.DeliveredFraction * 100f).ToString("0") + " %", label);
+            GUILayout.Label("Body L x D             " + p.swimmerLengthUm.ToString("0") + " x " + p.swimmerDiameterUm.ToString("0") + " um (thrust preset)", label);
+            GUILayout.Label("Vessel / opening      " + p.vesselDiameterUm.ToString("0") + " / " + p.openingDiameterUm.ToString("0.0") + " um", label);
+            GUILayout.Label("Needle D x reach      " + p.needleDiameterUm.ToString("0.0") + " x " + p.needleExtensionUm.ToString("0.0") + " um", label);
+            float layer = MicroHydrodynamics.HoldLayerUm(p, swimmer.RFT.speedMS);
+            GUILayout.Label("Upstream hold layer   " + layer.ToString("0.000") + " um from wall", label);
+            float required = MicroHydrodynamics.RequiredWallHoldSpeedMS(p);
+            GUILayout.Label("Required wall speed   " + (required * 1e6f).ToString("0.0") + " um/s", label);
+            GUILayout.Label("Station keeping       " + (swimmer.CanStationKeep ? "FEASIBLE in reduced model" : "INFEASIBLE - injection interlocked"), label);
             GUILayout.FlexibleSpace();
             GUILayout.Label("RMB drag: orbit | Wheel: zoom | H: hide", label);
+            GUILayout.EndScrollView();
             GUILayout.EndArea();
         }
 
@@ -126,6 +136,19 @@ namespace LCENano
             if (preset == 0) { p.centerlineSpeedMmS = 2f; p.stroke = StrokeMode.Disabled; p.motionVisualizationGain = 1f; }
             else if (preset == 1) { p.centerlineSpeedMmS = 0f; p.stroke = StrokeMode.TravelingWave; p.motionVisualizationGain = 100f; }
             else { p.centerlineSpeedMmS = 2f; p.stroke = StrokeMode.TravelingWave; p.motionVisualizationGain = 1f; }
+            swimmer.ResetPosition();
+            orbit.SetFollow(false);
+        }
+
+        void ApplyMaximumThrustPreset()
+        {
+            // Exhaustive cycle-mean scan of the UI's bounded actuation domain places
+            // the optimum at maximum frequency/amplitude and about 1.6 waves.
+            p.frequencyHz = 12f;
+            p.amplitude = 1.15f;
+            p.waveNumber = 1.6f;
+            p.stroke = StrokeMode.TravelingWave;
+            p.motionVisualizationGain = 1f;
             swimmer.ResetPosition();
             orbit.SetFollow(false);
         }
